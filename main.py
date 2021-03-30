@@ -8,18 +8,20 @@ import datetime as dt
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, LSTM
+import logging
 
 
-def create_model(optimizer='Adam', loss='mean_squared_error')-> Sequential:
+def create_model(input_shape, optimizer='Adam', loss='mean_squared_error')-> Sequential:
     """
     Simple function to create sequential model.
     Model is compiled with Adam optimizer and mean squared loss function
+    :param input_shape -> tuple int
     :param: optimizer (str)
     :param: loss (str)
     :return: compiled sequential model
     """
     new_model = Sequential()
-    new_model.add(LSTM(units=50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+    new_model.add(LSTM(units=50, return_sequences=True, input_shape=input_shape))
     new_model.add(Dropout(0.2))
     new_model.add(LSTM(units=50, return_sequences=True))
     new_model.add(Dropout(0.2))
@@ -49,7 +51,7 @@ def create_training_tensors(window_size, data):
     :param data:
     :return: touple x_train tensor, y_train_tensor
     """
-    print(f"Data shape {data.shape}")
+    logging.info(f"Input data shape {data.shape}")
     # x is our learning data
     x_train = []
     # y is what we want to predict
@@ -63,8 +65,8 @@ def create_training_tensors(window_size, data):
     x_train, y_train = np.array(x_train), np.array(y_train)
     # add one more dimentsion
     x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
-    print(f"Data shape {x_train.shape}")
-    print(f"Data shape {y_train.shape}")
+    logging.info(f"Out x-data shape {x_train.shape}")
+    logging.info(f"Out y-data shape {y_train.shape}")
 
     return x_train, y_train
 
@@ -92,7 +94,7 @@ def run_trainig_and_testing(company = "FB", training_window = 60):
     x_train, y_train = create_training_tensors(training_window, scaled_data)
 
     # build the model
-    model = create_model()
+    model = create_model((x_train.shape[1], 1))
     model.fit(x_train, y_train, epochs=25, batch_size=32)
 
     # for future we can save the model here and load for future
